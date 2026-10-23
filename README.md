@@ -3,11 +3,20 @@ A system that only simulates the happy path of the backend logic for a e-commerc
 
 ## Execution
 
+set up repo:
 ```
 git clone https://github.com/InakiMedina/OrderPlacementHappyPath.git
 cd OrderPlacementHappyPath
+```
+
+start docker and run order:
+```
 docker compose up -d
-docker compose run --rm app python place_order.py
+```
+
+loggin:
+```
+docker compose logs -f --timestamps
 ```
 
 ## Architecture
@@ -46,3 +55,4 @@ Gemini helped with the following
 - helped me realized i don't need flask, just pika
 - help me learn docker
 - help me learn rabbit_mq
+- help deciding logging option
