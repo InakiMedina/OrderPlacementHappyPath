@@ -1,0 +1,24 @@
+services:
+  rabbitmq: 
+    image: rabbitmq:3-alpine
+    container_name: place-order-broker
+    ports: 
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  order-placement:
+    build: ./services/orderPlacement
+    container_name: order-placement-service
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./services/orderPlacement:/app
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+
+volumes:
+  rabbitmq_data:

@@ -1,0 +1,50 @@
+{
+  "order_id": "ord-8f7b2c14-5d9e",
+  "created_at": "2026-10-22T20:55:00Z",
+  "status": "PENDING",
+  "customer": {
+    "customer_id": "cust-94021",
+    "first_name": "Carlos",
+    "last_name": "Mendoza",
+    "email": "carlos.mendoza@example.com",
+    "phone": "+523312345678",
+    "shipping_address": {
+      "street": "Av. Periferico Sur 8585",
+      "city": "Tlaquepaque",
+      "state": "Jalisco",
+      "postal_code": "45604",
+      "country": "MX"
+    }
+  },
+  "items": [
+    {
+      "product_id": "prod-bk-9041",
+      "title": "Software Architecture: The Hard Parts",
+      "sku": "BK-SOFT-ARCH-01",
+      "quantity": 1,
+      "unit_price": 49.99,
+      "currency": "USD"
+    }
+  ],
+  "payment": {
+    "payment_id": "pay-txn-48201",
+    "payment_method": "credit_card",
+    "provider": "stripe",
+    "status": "AUTHORIZED",
+    "card_details": {
+      "brand": "Visa",
+      "last4": "4242",
+      "expiration_month": 8,
+      "expiration_year": 2028
+    },
+    "amount": 49.99,
+    "currency": "USD"
+  },
+  "summary": {
+    "subtotal": 49.99,
+    "shipping_fee": 0.00,
+    "tax": 8.00,
+    "total_amount": 57.99,
+    "currency": "USD"
+  }
+}
