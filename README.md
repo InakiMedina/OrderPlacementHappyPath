@@ -11,13 +11,14 @@ cd OrderPlacementHappyPath
 
 start docker and run order:
 ```
-docker compose up -d
+docker compose up -d --build
 ```
 
 loggin:
 ```
 docker compose logs -f --timestamps
 ```
+![alt text](image.png)
 
 ## Architecture
 
@@ -34,19 +35,23 @@ Since this is my first time using any of the two, Rabbit MQ is easier to use and
 
 ## Folder Structure
 
-└── my-project/
-    ├── src/
-    │   ├── components/
-    │   │   ├── Button.tsx
-    │   │   └── Card.tsx
-    │   ├── pages/
-    │   │   ├── index.tsx
-    │   │   └── about.tsx
-    │   └── app.tsx
-    ├── public/
-    │   └── favicon.ico
-    ├── package.json
-    └── README.md
+OrderPlacementHappyPath/
+├── docker-compose.yml              # Orchestrates RabbitMQ, order placement, and consumers
+├── README.md                       # Project documentation and architectural overview
+│
+├── services/
+│   ├── orderPlacement/             # Order placement publisher service
+│   │   ├── Dockerfile              # Container definition for the publisher
+│   │   ├── requirements.txt        # Python dependencies (pika, etc.)
+│   │   ├── app.py                  # Publisher script (reads order and emits event)
+│   │   └── order.json              # Sample order payload (items, customer, payment)
+│   │
+│   └── payment/                    # Downstream consumer worker service
+│       ├── Dockerfile              # Container definition for the consumer
+│       ├── requirements.txt        # Python dependencies (pika, etc.)
+│       └── app.py                  # Consumer worker (listens to queue, processes payment)
+│
+└── .gitignore                      # Git exclusion rules (pycache, volumes, .env)
 
 ## AI Usage
 

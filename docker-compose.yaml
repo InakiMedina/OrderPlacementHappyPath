@@ -1,4 +1,15 @@
 services:
+
+  order-placement:
+    build: ./services/orderPlacement
+    container_name: order-placement-service
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./services/orderPlacement:/app
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+
   rabbitmq: 
     image: rabbitmq:3-alpine
     container_name: place-order-broker
@@ -10,15 +21,16 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  order-placement:
-    build: ./services/orderPlacement
-    container_name: order-placement-service
+  payment:
+    build: ./services/payment
+    container_name: payment-service
     depends_on:
       - rabbitmq
     volumes:
-      - ./services/orderPlacement:/app
+      - ./services/payment:/app
     environment:
       - RABBITMQ_HOST=rabbitmq
+
 
 volumes:
   rabbitmq_data:

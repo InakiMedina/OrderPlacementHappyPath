@@ -18,7 +18,7 @@ except OSError:
 except json.JSONDecodeError:
   sys.exit(f"File contains invalid JSON: {fname}")
 
-RABBITMQ_HOST = os.getenv("place-order-broker", "rabbitmq")
+RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
 
 # Retry loop in case RabbitMQ takes a few seconds to start up in Docker
 while True:
