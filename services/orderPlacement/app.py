@@ -5,23 +5,13 @@ import time
 import pika
 from datetime import datetime, timezone
 import random
-from decimal import *
 from loguru import logger
+import uuid
 
-logger.remove()
-logger.add(
-    "/var/log/app/system.log",
-    format="{time:YYYY-MM-DD HH:mm:ss.SSS} | <cyan>[ORDER-SERVICE]</cyan> | <level>{level: <8}</level> | {message}",
-    colorize=True,
-    enqueue=False
-)
 
-logger.success("Worker started")
+def get_order_from_file():
 
-def make_payment():
-  
   fname = "order.json"
-  order = {}
 
   try:
     with open(fname, "r", encoding="utf-8") as file:
@@ -33,25 +23,14 @@ def make_payment():
     logger.error(f"File contains invalid JSON: {fname}")
     sys.exit(f"File contains invalid JSON: {fname}")
 
-  RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
+  return order
 
-  # Retry loop in case RabbitMQ takes a few seconds to start up in Docker
-  while True:
-    try:
-      connection = pika.BlockingConnection(
-          pika.ConnectionParameters(host=RABBITMQ_HOST)
-      )
-      logger.success("Established connection with RabitMQ")
-      break
-    except pika.exceptions.AMQPConnectionError:
-      logger.info("Waiting for RabitMQ")
-      time.sleep(2)
 
-  channel = connection.channel()
-  channel.exchange_declare(exchange="orders", exchange_type="topic", durable=True)
+def place_order(channel):
 
-  getcontext().prec = 8
-  event_id = str(Decimal(random.random())*pow(10, 8))
+  order = get_order_from_file()
+
+  event_id = str(uuid.uuid4())
   timestamp = datetime.now(timezone.utc).isoformat()
 
   bodyPayload = {
@@ -76,8 +55,39 @@ def make_payment():
     f"Order Dispatched -> <bold><green>ID: {order_id}</green></bold> "
       f"[EventID: <dim>{event_id}</dim>]"
   )
+
+
+if __name__ == "__main__":
+
+  RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
+
+
+  # Retry loop in case RabbitMQ takes a few seconds to start up in Docker
+  while True:
+    try:
+      connection = pika.BlockingConnection(
+          pika.ConnectionParameters(host=RABBITMQ_HOST)
+      )
+      logger.success("Established connection with RabbitMQ")
+      break
+    except pika.exceptions.AMQPConnectionError:
+      logger.info("Waiting for RabbitMQ")
+      time.sleep(5)
+
+  
+  logger.remove()
+  logger.add(
+      "/var/log/app/system.log",
+      format="{time:YYYY-MM-DD HH:mm:ss.SSS} | <cyan>[ORDER-SERVICE]</cyan> | <level>{level: <8}</level> | {message}",
+      colorize=True,
+      enqueue=False
+  )
+  logger.success("Worker started")
+
+  channel = connection.channel()
+  channel.exchange_declare(exchange="orders", exchange_type="topic", durable=True)
+
+  place_order(channel)
+
   connection.close()
-
-make_payment()
-
-logger.complete()
+  logger.complete()

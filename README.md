@@ -18,6 +18,11 @@ loggin:
 ```
 Get-Content .\logs\system.log -Wait
 ```
+
+clear logs and re run order
+```
+Clear-Content .\logs\system.log; docker compose restart order-placement; Get-Content .\logs\system.log -Wait
+```
 ![alt text](image.png)
 
 ## Architecture
