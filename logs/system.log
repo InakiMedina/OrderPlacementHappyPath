@@ -1,0 +1,20 @@
+2026-10-24 17:59:13.870 | [36m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | Worker started
+2026-10-24 17:59:13.877 | [36m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabitMQ
+2026-10-24 17:59:13.963 | [35m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabitMQ
+2026-10-24 17:59:15.880 | [36m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabitMQ
+2026-10-24 17:59:15.966 | [35m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabitMQ
+2026-10-24 17:59:17.884 | [36m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabitMQ
+2026-10-24 17:59:17.970 | [35m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabitMQ
+2026-10-24 17:59:19.886 | [36m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabitMQ
+2026-10-24 17:59:19.972 | [35m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabitMQ
+2026-10-24 17:59:21.889 | [36m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabitMQ
+2026-10-24 17:59:21.975 | [35m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabitMQ
+2026-10-24 17:59:23.895 | [36m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | Established connection with RabitMQ
+2026-10-24 17:59:23.898 | [36m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | Order Dispatched -> <bold><green>ID: ord-8f7b2c14-5d9e</green></bold> [EventID: <dim>38433346</dim>]
+2026-10-24 17:59:23.985 | [35m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | Worker started
+2026-10-24 17:59:23.985 | [35m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | payment Done
+2026-10-24 17:59:23.986 | [35m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | payment Done
+2026-10-24 17:59:23.987 | [35m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | payment Done
+2026-10-24 17:59:23.989 | [35m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | payment Done
+2026-10-24 17:59:23.991 | [35m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | payment Done
+2026-10-24 17:59:23.992 | [35m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | payment Done

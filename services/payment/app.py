@@ -3,23 +3,30 @@ import os
 import sys
 import time
 import pika
+from loguru import logger
 
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
 
+logger.remove()
+logger.add(
+    "/var/log/app/system.log",
+    format="{time:YYYY-MM-DD HH:mm:ss.SSS} | <magenta>[ORDER-SERVICE]</magenta> | <level>{level: <8}</level> | {message}",
+    colorize=True,
+    enqueue=False
+)
 
 def payOrder(ch, method, properties, body):
   try:
     event_data = json.loads(body.decode("utf-8"))
   except (json.JSONDecodeError, UnicodeDecodeError) as e:
-    print(f"Failed to decode message: {e}", file=sys.stderr)
+    logger.error(f"Failed to decode message: {e}", file=sys.stderr)
     # Reject message without requeueing corrupted payload
     ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
     return
 
   order_payload = event_data.get("payload", event_data)
 
-  print("payment Done", flush=True)
-  print(order_payload, flush=True)
+  logger.success("payment Done")
 
   # Acknowledge completion
   ch.basic_ack(delivery_tag=method.delivery_tag)
@@ -33,7 +40,7 @@ while True:
     )
     break
   except pika.exceptions.AMQPConnectionError:
-    print("Waiting for RabbitMQ...", flush=True)
+    logger.info("Waiting for RabitMQ")
     time.sleep(2)
 
 channel = connection.channel()
@@ -53,5 +60,7 @@ channel.basic_consume(
     auto_ack=False,
 )
 
-print("Worker started. Waiting for order messages...", flush=True)
+logger.success("Worker started")
 channel.start_consuming()
+
+logger.complete()

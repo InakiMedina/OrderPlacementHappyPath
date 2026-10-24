@@ -16,7 +16,7 @@ docker compose up -d --build
 
 loggin:
 ```
-docker compose logs -f --timestamps
+Get-Content .\logs\system.log -Wait
 ```
 ![alt text](image.png)
 
@@ -58,6 +58,7 @@ OrderPlacementHappyPath/
 Gemini helped with the following
 - troubleshooting docker
 - helped me realized i don't need flask, just pika
-- help me learn docker
-- help me learn rabbit_mq
+- teach me docker
+- teach me rabbit_mq reads and writes
 - help deciding logging option
+- teach me loguru

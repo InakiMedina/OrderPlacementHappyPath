@@ -7,6 +7,7 @@ services:
       - rabbitmq
     volumes:
       - ./services/orderPlacement:/app
+      - ./logs:/var/log/app
     environment:
       - RABBITMQ_HOST=rabbitmq
 
@@ -21,6 +22,7 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
+
   payment:
     build: ./services/payment
     container_name: payment-service
@@ -28,8 +30,10 @@ services:
       - rabbitmq
     volumes:
       - ./services/payment:/app
+      - ./logs:/var/log/app
     environment:
       - RABBITMQ_HOST=rabbitmq
+      - PYTHONUNBUFFERED=1
 
 
 volumes:

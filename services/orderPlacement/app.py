@@ -6,54 +6,78 @@ import pika
 from datetime import datetime, timezone
 import random
 from decimal import *
+from loguru import logger
 
-fname = "order.json"
-order = {}
-
-try:
-  with open(fname, "r", encoding="utf-8") as file:
-    order = json.load(file)
-except OSError:
-  sys.exit(f"Could not open/read file: {fname}")
-except json.JSONDecodeError:
-  sys.exit(f"File contains invalid JSON: {fname}")
-
-RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
-
-# Retry loop in case RabbitMQ takes a few seconds to start up in Docker
-while True:
-  try:
-    connection = pika.BlockingConnection(
-        pika.ConnectionParameters(host=RABBITMQ_HOST)
-    )
-    break
-  except pika.exceptions.AMQPConnectionError:
-    print("Waiting for RabbitMQ to become ready...")
-    time.sleep(2)
-
-channel = connection.channel()
-channel.exchange_declare(exchange="orders", exchange_type="topic", durable=True)
-
-getcontext().prec = 8
-event_id = str(Decimal(random.random())*pow(10, 8))
-timestamp = datetime.now(timezone.utc).isoformat()
-
-bodyPayload = {
-    "metadata": {
-        "event_id": event_id,
-        "event_type": "OrderPlaced",
-        "producer": "order-placement-service",
-        "timestamp": timestamp,
-    },
-    "payload": order,  # Your order.json content
-}
-
-channel.basic_publish(
-  exchange="orders",
-  routing_key="order.placed",
-  body=json.dumps(bodyPayload),
-  properties=pika.BasicProperties(delivery_mode=2)
+logger.remove()
+logger.add(
+    "/var/log/app/system.log",
+    format="{time:YYYY-MM-DD HH:mm:ss.SSS} | <cyan>[ORDER-SERVICE]</cyan> | <level>{level: <8}</level> | {message}",
+    colorize=True,
+    enqueue=False
 )
 
-print(f"Order placed : {json.dumps(bodyPayload)}")
-connection.close()
+logger.success("Worker started")
+
+def make_payment():
+  
+  fname = "order.json"
+  order = {}
+
+  try:
+    with open(fname, "r", encoding="utf-8") as file:
+      order = json.load(file)
+  except OSError:
+    logger.error(f"Could not open/read file: {fname}")
+    sys.exit(f"Could not open/read file: {fname}")
+  except json.JSONDecodeError:
+    logger.error(f"File contains invalid JSON: {fname}")
+    sys.exit(f"File contains invalid JSON: {fname}")
+
+  RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
+
+  # Retry loop in case RabbitMQ takes a few seconds to start up in Docker
+  while True:
+    try:
+      connection = pika.BlockingConnection(
+          pika.ConnectionParameters(host=RABBITMQ_HOST)
+      )
+      logger.success("Established connection with RabitMQ")
+      break
+    except pika.exceptions.AMQPConnectionError:
+      logger.info("Waiting for RabitMQ")
+      time.sleep(2)
+
+  channel = connection.channel()
+  channel.exchange_declare(exchange="orders", exchange_type="topic", durable=True)
+
+  getcontext().prec = 8
+  event_id = str(Decimal(random.random())*pow(10, 8))
+  timestamp = datetime.now(timezone.utc).isoformat()
+
+  bodyPayload = {
+      "metadata": {
+          "event_id": event_id,
+          "event_type": "OrderPlaced",
+          "producer": "order-placement-service",
+          "timestamp": timestamp,
+      },
+      "payload": order,  # Your order.json content
+  }
+
+  channel.basic_publish(
+    exchange="orders",
+    routing_key="order.placed",
+    body=json.dumps(bodyPayload),
+    properties=pika.BasicProperties(delivery_mode=2)
+  )
+
+  order_id = order.get("order_id", "N/A")
+  logger.success(
+    f"Order Dispatched -> <bold><green>ID: {order_id}</green></bold> "
+      f"[EventID: <dim>{event_id}</dim>]"
+  )
+  connection.close()
+
+make_payment()
+
+logger.complete()
