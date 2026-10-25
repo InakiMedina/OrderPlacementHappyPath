@@ -7,6 +7,25 @@ from loguru import logger
 
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
 
+def get_payment_details():
+
+  fname = "payment.json"
+
+  try:
+    with open(fname, "r", encoding="utf-8") as file:
+      payment = json.load(file)
+  except OSError:
+    logger.error(f"Could not open/read file: {fname}")
+    sys.exit(f"Could not open/read file: {fname}")
+  except json.JSONDecodeError:
+    logger.error(f"File contains invalid JSON: {fname}")
+    sys.exit(f"File contains invalid JSON: {fname}")
+
+  logger.info("Payment details read")
+  return payment
+
+
+
 def payOrder(ch, method, properties, body):
   try:
     event_data = json.loads(body.decode("utf-8"))
@@ -17,6 +36,19 @@ def payOrder(ch, method, properties, body):
     return
 
   order_payload = event_data.get("payload", event_data)
+  order_metadata = event_data.get("metadata", event_data)
+  order_id = order_payload["order_id"]
+  event_id = order_metadata["event_id"]
+  logger.opt(colors=True).success(
+    f"Order Received <- <bold><green>ID: {order_id}</green></bold> "
+      f"[EventID: <dim>{event_id}</dim>]"
+  )
+
+  payment = get_payment_details()
+
+  order_payload["payment"] = payment
+
+  order_payload["status"] = "PAYED"
 
   logger.success("payment Done")
 
@@ -27,9 +59,10 @@ def payOrder(ch, method, properties, body):
 if __name__ == "__main__":
 
   logger.remove()
+  logger.add(sys.stdout, colorize=True)
   logger.add(
       "/var/log/app/system.log",
-      format="{time:YYYY-MM-DD HH:mm:ss.SSS} | <magenta>[PAYMENT-SERVICE]</magenta> | <level>{level: <8}</level> | {message}",
+      format="{time:YYYY-MM-DD HH:mm:ss.SSS} | <blue>[PAYMENT-SERVICE]</blue> | <level>{level: <8}</level> | {message}",
       colorize=True,
       enqueue=False
   )
@@ -48,8 +81,8 @@ if __name__ == "__main__":
 
   channel = connection.channel()
 
-  channel.exchange_declare(exchange="orders", exchange_type="topic", durable=False)
-  channel.queue_declare(queue="order_processing_queue", durable=False)
+  channel.exchange_declare(exchange="orders", exchange_type="topic", durable=True)
+  channel.queue_declare(queue="order_processing_queue", durable=True)
   channel.queue_bind(
       exchange="orders", queue="order_processing_queue", routing_key="order.*"
   )

@@ -1,0 +1,15 @@
+
+{
+	"payment_id": "pay-txn-48201",
+	"payment_method": "credit_card",
+	"provider": "stripe",
+	"status": "AUTHORIZED",
+	"card_details": {
+		"brand": "Visa",
+		"last4": "4242",
+		"expiration_month": 8,
+		"expiration_year": 2028
+	},
+	"amount": 49.99,
+	"currency": "USD"
+}

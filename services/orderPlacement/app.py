@@ -9,7 +9,7 @@ from loguru import logger
 import uuid
 
 
-def get_order_from_file():
+def get_order_details():
 
   fname = "order.json"
 
@@ -23,12 +23,15 @@ def get_order_from_file():
     logger.error(f"File contains invalid JSON: {fname}")
     sys.exit(f"File contains invalid JSON: {fname}")
 
+  logger.info("Order details read")
   return order
 
 
 def place_order(channel):
 
-  order = get_order_from_file()
+  order = get_order_details()
+
+  order["status"] = "PROCESSSED"
 
   event_id = str(uuid.uuid4())
   timestamp = datetime.now(timezone.utc).isoformat()
@@ -51,9 +54,9 @@ def place_order(channel):
   )
 
   order_id = order.get("order_id", "N/A")
-  logger.success(
+  logger.opt(colors=True).success(
     f"Order Dispatched -> <bold><green>ID: {order_id}</green></bold> "
-      f"[EventID: <dim>{event_id}</dim>]"
+    f"[EventID: <dim>{event_id}</dim>]"
   )
 
 
@@ -62,6 +65,7 @@ if __name__ == "__main__":
   RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
 
   logger.remove()
+  logger.add(sys.stdout, colorize=True)
   logger.add(
       "/var/log/app/system.log",
       format="{time:YYYY-MM-DD HH:mm:ss.SSS} | <cyan>[ORDER-SERVICE]</cyan> | <level>{level: <8}</level> | {message}",
@@ -82,7 +86,12 @@ if __name__ == "__main__":
       time.sleep(5)
 
   channel = connection.channel()
-  channel.exchange_declare(exchange="orders", exchange_type="topic", durable=False)
+  channel.exchange_declare(exchange="orders", exchange_type="topic", durable=True)
+
+  channel.queue_declare(queue="order_processing_queue", durable=True)
+  channel.queue_bind(
+      exchange="orders", queue="order_processing_queue", routing_key="order.*"
+  )
 
   logger.success("Worker started")
   place_order(channel)
