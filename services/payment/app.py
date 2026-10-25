@@ -7,19 +7,11 @@ from loguru import logger
 
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
 
-logger.remove()
-logger.add(
-    "/var/log/app/system.log",
-    format="{time:YYYY-MM-DD HH:mm:ss.SSS} | <magenta>[ORDER-SERVICE]</magenta> | <level>{level: <8}</level> | {message}",
-    colorize=True,
-    enqueue=False
-)
-
 def payOrder(ch, method, properties, body):
   try:
     event_data = json.loads(body.decode("utf-8"))
   except (json.JSONDecodeError, UnicodeDecodeError) as e:
-    logger.error(f"Failed to decode message: {e}", file=sys.stderr)
+    logger.error("Failed to decode message")
     # Reject message without requeueing corrupted payload
     ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
     return
@@ -32,35 +24,45 @@ def payOrder(ch, method, properties, body):
   ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
-# Connect with retry loop
-while True:
-  try:
-    connection = pika.BlockingConnection(
-        pika.ConnectionParameters(host=RABBITMQ_HOST)
-    )
-    break
-  except pika.exceptions.AMQPConnectionError:
-    logger.info("Waiting for RabitMQ")
-    time.sleep(5)
+if __name__ == "__main__":
 
-channel = connection.channel()
+  logger.remove()
+  logger.add(
+      "/var/log/app/system.log",
+      format="{time:YYYY-MM-DD HH:mm:ss.SSS} | <magenta>[PAYMENT-SERVICE]</magenta> | <level>{level: <8}</level> | {message}",
+      colorize=True,
+      enqueue=False
+  )
+  
+  # Connect with retry loop
+  while True:
+    try:
+      connection = pika.BlockingConnection(
+          pika.ConnectionParameters(host=RABBITMQ_HOST)
+      )
+      logger.success("Established connection with RabbitMQ")
+      break
+    except pika.exceptions.AMQPConnectionError:
+      logger.info("Waiting for RabitMQ")
+      time.sleep(5)
 
-channel.exchange_declare(exchange="orders", exchange_type="topic", durable=True)
-channel.queue_declare(queue="order_processing_queue", durable=True)
-channel.queue_bind(
-    exchange="orders", queue="order_processing_queue", routing_key="order.*"
-)
+  channel = connection.channel()
 
-# Optional: ensure fair dispatch (processes 1 message at a time per worker)
-channel.basic_qos(prefetch_count=1)
+  channel.exchange_declare(exchange="orders", exchange_type="topic", durable=False)
+  channel.queue_declare(queue="order_processing_queue", durable=False)
+  channel.queue_bind(
+      exchange="orders", queue="order_processing_queue", routing_key="order.*"
+  )
 
-channel.basic_consume(
-    queue="order_processing_queue",
-    on_message_callback=payOrder,
-    auto_ack=False,
-)
+  # Optional: ensure fair dispatch (processes 1 message at a time per worker)
+  channel.basic_qos(prefetch_count=1)
 
-logger.success("Worker started")
-channel.start_consuming()
+  channel.basic_consume(
+      queue="order_processing_queue",
+      on_message_callback=payOrder,
+      auto_ack=False,
+  )
+  logger.success("Worker started")
+  channel.start_consuming()
 
-logger.complete()
+  logger.complete()

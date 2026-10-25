@@ -61,6 +61,13 @@ if __name__ == "__main__":
 
   RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
 
+  logger.remove()
+  logger.add(
+      "/var/log/app/system.log",
+      format="{time:YYYY-MM-DD HH:mm:ss.SSS} | <cyan>[ORDER-SERVICE]</cyan> | <level>{level: <8}</level> | {message}",
+      colorize=True,
+      enqueue=False
+  )
 
   # Retry loop in case RabbitMQ takes a few seconds to start up in Docker
   while True:
@@ -74,19 +81,10 @@ if __name__ == "__main__":
       logger.info("Waiting for RabbitMQ")
       time.sleep(5)
 
-  
-  logger.remove()
-  logger.add(
-      "/var/log/app/system.log",
-      format="{time:YYYY-MM-DD HH:mm:ss.SSS} | <cyan>[ORDER-SERVICE]</cyan> | <level>{level: <8}</level> | {message}",
-      colorize=True,
-      enqueue=False
-  )
-  logger.success("Worker started")
-
   channel = connection.channel()
-  channel.exchange_declare(exchange="orders", exchange_type="topic", durable=True)
+  channel.exchange_declare(exchange="orders", exchange_type="topic", durable=False)
 
+  logger.success("Worker started")
   place_order(channel)
 
   connection.close()

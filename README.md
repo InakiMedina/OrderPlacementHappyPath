@@ -21,9 +21,9 @@ Get-Content .\logs\system.log -Wait
 
 clear logs and re run order
 ```
-Clear-Content .\logs\system.log; docker compose restart order-placement; Get-Content .\logs\system.log -Wait
+docker compose down; Clear-Content .\logs\system.log; docker compose up -d; Get-Content .\logs\system.log -Wait
 ```
-![alt text](image.png)
+![alt text](image-1.png)
 
 ## Architecture
 
