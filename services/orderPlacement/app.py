@@ -91,7 +91,7 @@ if __name__ == "__main__":
       logger.success(f"Established connection with Order-Placed-Broker at order-placed")
       break
     except (pika.exceptions.AMQPConnectionError, socket.gaierror, OSError):
-      logger.info("Waiting for RabbitMQ")
+      logger.info("Waiting for Order-Placed-Broker (order-placed)...")
       time.sleep(5)
 
   logger.success("Worker started")
