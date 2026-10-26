@@ -51,6 +51,18 @@ services:
       - RABBITMQ_OUT_HOST=payment-applied
       - PYTHONUNBUFFERED=1
 
+  order-fulfillment:
+    build: ./services/orderFulfillment
+    container_name: order-fulfillment-service
+    depends_on:
+      - payment-applied
+    volumes:
+      - ./services/orderFulfillment:/app
+      - ./logs:/var/log/app
+    environment:
+      - RABBITMQ_IN_HOST=payment-applied
+      - PYTHONUNBUFFERED=1
+
 
 volumes:
   order_placed_data:

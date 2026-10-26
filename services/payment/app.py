@@ -85,8 +85,8 @@ def payOrder(ch, method, body):
 
 if __name__ == "__main__":
 
-  RABBITMQ_IN_HOST = os.getenv("RABBITMQ_IN_HOST", "rabbitmq")
-  RABBITMQ_OUT_HOST = os.getenv("RABBITMQ_OUT_HOST", "rabbitmq")
+  RABBITMQ_IN_HOST = os.getenv("RABBITMQ_IN_HOST", "order-placed")
+  RABBITMQ_OUT_HOST = os.getenv("RABBITMQ_OUT_HOST", "payment-applied")
 
   logger.remove()
   logger.add(sys.stdout, colorize=True)

@@ -41,20 +41,25 @@ Since this is my first time using any of the two, Rabbit MQ is easier to use and
 ## Folder Structure
 
 OrderPlacementHappyPath/
-├── docker-compose.yml              # Orchestrates RabbitMQ, order placement, and consumers
+├── docker-compose.yml              # Orchestrates RabbitMQ, order placement, payment and order fulfillment
 ├── README.md                       # Project documentation and architectural overview
 │
 ├── services/
 │   ├── orderPlacement/             # Order placement publisher service
-│   │   ├── Dockerfile              # Container definition for the publisher
+│   │   ├── Dockerfile              # Container definition (identical for all services)
 │   │   ├── requirements.txt        # Python dependencies (pika, etc.)
 │   │   ├── app.py                  # Publisher script (reads order and emits event)
-│   │   └── order.json              # Sample order payload (items, customer, payment)
+│   │   └── order.json              # Sample order payload (items, customer)
 │   │
-│   └── payment/                    # Downstream consumer worker service
-│       ├── Dockerfile              # Container definition for the consumer
-│       ├── requirements.txt        # Python dependencies (pika, etc.)
-│       └── app.py                  # Consumer worker (listens to queue, processes payment)
+│   ├── payment/                    # Downstream consumer worker and payment publisher 
+│   │   ├── Dockerfile              # Container definition
+│   │   ├── requirements.txt        # Python dependencies (pika, etc.)
+│   │   ├── app.py                  # Publisher script (listens to queue, applies payment and emits event)
+│   │   └── payment.json              # Sample payment payload to attach to order
+│   ├── orderFulfullment/     		# Downstream consumer worker
+│   │   ├── Dockerfile              # Container definition
+│   │   ├── requirements.txt        # Python dependencies (pika, etc.)
+│   │   ├── app.py                  # Consumer worker (listens to queue, fullfills orders)
 │
 └── .gitignore                      # Git exclusion rules (pycache, volumes, .env)
 
