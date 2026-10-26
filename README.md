@@ -21,7 +21,7 @@ Get-Content .\logs\system.log -Wait
 
 clear logs and re run order
 ```
-docker compose stop; Clear-Content .\logs\system.log; docker compose start -d; Get-Content .\logs\system.log -Wait
+docker compose stop; Clear-Content .\logs\system.log; docker compose start; Get-Content .\logs\system.log -Wait
 ```
 ![alt text](image-1.png)
 
@@ -67,3 +67,6 @@ Gemini helped with the following
 - teach me rabbit_mq reads and writes
 - help deciding logging option
 - teach me loguru
+- teach me multiple rabbit_mq broker config options 
+- show me how to connect to multiple brokers and config them
+- debbug services everytime they stop reading the event

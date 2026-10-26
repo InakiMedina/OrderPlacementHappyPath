@@ -1,40 +1,57 @@
 services:
 
-  order-placement:
-    build: ./services/orderPlacement
-    container_name: order-placement-service
-    depends_on:
-      - rabbitmq
-    volumes:
-      - ./services/orderPlacement:/app
-      - ./logs:/var/log/app
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-
-  rabbitmq: 
+  # Brokers
+  order-placed: 
     image: rabbitmq:3-alpine
-    container_name: place-order-broker
+    container_name: order-placed-broker
     ports: 
       - "5672:5672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - order_placed_data:/var/lib/rabbitmq
+
+      
+  payment-applied: 
+    image: rabbitmq:3-alpine
+    container_name: payment-applied-broker
+    ports: 
+      - "5673:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - payment_applied_data:/var/lib/rabbitmq
+
+  # Services
+  order-placement:
+    build: ./services/orderPlacement
+    container_name: order-placement-service
+    depends_on:
+      - order-placed
+    volumes:
+      - ./services/orderPlacement:/app
+      - ./logs:/var/log/app
+    environment:
+      - RABBITMQ_HOST=order-placed
 
 
   payment:
     build: ./services/payment
     container_name: payment-service
     depends_on:
-      - rabbitmq
+      - order-placed
+      - payment-applied
     volumes:
       - ./services/payment:/app
       - ./logs:/var/log/app
     environment:
-      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_IN_HOST=order-placed
+      - RABBITMQ_OUT_HOST=payment-applied
       - PYTHONUNBUFFERED=1
 
 
 volumes:
-  rabbitmq_data:
+  order_placed_data:
+  payment_applied_data:

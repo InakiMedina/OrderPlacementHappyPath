@@ -1,13 +1,16 @@
-2026-10-25 23:18:01.067 | [34m[PAYMENT-SERVICE][0m | [1mINFO    [0m | Waiting for RabitMQ
-2026-10-25 23:18:01.358 | [36m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabbitMQ
-2026-10-25 23:18:06.071 | [34m[PAYMENT-SERVICE][0m | [1mINFO    [0m | Waiting for RabitMQ
-2026-10-25 23:18:06.444 | [36m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabbitMQ
-2026-10-25 23:18:11.450 | [36m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | Established connection with RabbitMQ
-2026-10-25 23:18:11.473 | [36m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | Worker started
-2026-10-25 23:18:11.476 | [36m[ORDER-SERVICE][0m | [1mINFO    [0m | Order details read
-2026-10-25 23:18:11.477 | [36m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | Order Dispatched -> [1m[32mID: ord-8f7b2c14-5d9e[0m[1m[0m [EventID: [2m4a28a7e6-1fc7-4ebe-9492-f67affa8d01f[0m]
-2026-10-25 23:18:16.077 | [34m[PAYMENT-SERVICE][0m | [32m[1mSUCCESS [0m | Established connection with RabbitMQ
-2026-10-25 23:18:16.082 | [34m[PAYMENT-SERVICE][0m | [32m[1mSUCCESS [0m | Worker started
-2026-10-25 23:18:16.083 | [34m[PAYMENT-SERVICE][0m | [32m[1mSUCCESS [0m | Order Received <- [1m[32mID: ord-8f7b2c14-5d9e[0m[1m[0m [EventID: [2m4a28a7e6-1fc7-4ebe-9492-f67affa8d01f[0m]
-2026-10-25 23:18:16.101 | [34m[PAYMENT-SERVICE][0m | [1mINFO    [0m | Payment details read
-2026-10-25 23:18:16.102 | [34m[PAYMENT-SERVICE][0m | [32m[1mSUCCESS [0m | payment Done
+2026-10-26 02:03:22.983 | [36m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabbitMQ
+2026-10-26 02:03:23.144 | [34m[PAYMENT-SERVICE][0m | [1mINFO    [0m | Waiting for Order-Placed-Broker (order-placed)...
+2026-10-26 02:03:27.987 | [36m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabbitMQ
+2026-10-26 02:03:28.147 | [34m[PAYMENT-SERVICE][0m | [1mINFO    [0m | Waiting for Order-Placed-Broker (order-placed)...
+2026-10-26 02:03:32.990 | [36m[ORDER-SERVICE][0m | [1mINFO    [0m | Waiting for RabbitMQ
+2026-10-26 02:03:33.152 | [34m[PAYMENT-SERVICE][0m | [32m[1mSUCCESS [0m | Established connection with Order-Placed-Broker at order-placed
+2026-10-26 02:03:33.157 | [34m[PAYMENT-SERVICE][0m | [32m[1mSUCCESS [0m | Established connection with Payment-Applied-Broker at payment-applied
+2026-10-26 02:03:33.165 | [34m[PAYMENT-SERVICE][0m | [32m[1mSUCCESS [0m | Worker started
+2026-10-26 02:03:37.996 | [36m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | Established connection with Order-Placed-Broker at order-placed
+2026-10-26 02:03:37.997 | [36m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | Worker started
+2026-10-26 02:03:38.002 | [36m[ORDER-SERVICE][0m | [1mINFO    [0m | Order details read
+2026-10-26 02:03:38.003 | [36m[ORDER-SERVICE][0m | [32m[1mSUCCESS [0m | Order Dispatched -> [1m[32mID: ord-8f7b2c14-5d9e[0m[1m[0m [EventID: [2m27f119f3-3f99-4896-a706-7b5495606b9a[0m]
+2026-10-26 02:03:38.004 | [34m[PAYMENT-SERVICE][0m | [32m[1mSUCCESS [0m | Order Received <- [1m[32mID: ord-8f7b2c14-5d9e[0m[1m[0m [EventID: [2m27f119f3-3f99-4896-a706-7b5495606b9a[0m]
+2026-10-26 02:03:38.007 | [34m[PAYMENT-SERVICE][0m | [1mINFO    [0m | Payment details read
+2026-10-26 02:03:38.008 | [34m[PAYMENT-SERVICE][0m | [32m[1mSUCCESS [0m | payment Done
+2026-10-26 02:03:38.009 | [34m[PAYMENT-SERVICE][0m | [32m[1mSUCCESS [0m | Payment Dispatched -> [1m[32mID: ord-8f7b2c14-5d9e[0m[1m[0m [EventID: [2mb4707057-6040-4d61-ae23-530669ccade3[0m]

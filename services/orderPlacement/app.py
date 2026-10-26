@@ -3,10 +3,10 @@ import sys
 import os
 import time
 import pika
-from datetime import datetime, timezone
-import random
-from loguru import logger
+import socket
 import uuid
+from datetime import datetime, timezone
+from loguru import logger
 
 
 def get_order_details():
@@ -27,7 +27,16 @@ def get_order_details():
   return order
 
 
-def place_order(channel):
+def place_order():
+
+  # Setup order placed channel
+  channel = connection.channel()
+  channel.exchange_declare(exchange="orders", exchange_type="topic", durable=True)
+
+  channel.queue_declare(queue="order_placed_queue", durable=True)
+  channel.queue_bind(
+      exchange="orders", queue="order_placed_queue", routing_key="order.*"
+  )
 
   order = get_order_details()
 
@@ -62,7 +71,7 @@ def place_order(channel):
 
 if __name__ == "__main__":
 
-  RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
+  RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "order_placed")
 
   logger.remove()
   logger.add(sys.stdout, colorize=True)
@@ -79,22 +88,14 @@ if __name__ == "__main__":
       connection = pika.BlockingConnection(
           pika.ConnectionParameters(host=RABBITMQ_HOST)
       )
-      logger.success("Established connection with RabbitMQ")
+      logger.success(f"Established connection with Order-Placed-Broker at order-placed")
       break
-    except pika.exceptions.AMQPConnectionError:
+    except (pika.exceptions.AMQPConnectionError, socket.gaierror, OSError):
       logger.info("Waiting for RabbitMQ")
       time.sleep(5)
 
-  channel = connection.channel()
-  channel.exchange_declare(exchange="orders", exchange_type="topic", durable=True)
-
-  channel.queue_declare(queue="order_processing_queue", durable=True)
-  channel.queue_bind(
-      exchange="orders", queue="order_processing_queue", routing_key="order.*"
-  )
-
   logger.success("Worker started")
-  place_order(channel)
+  place_order()
 
   connection.close()
   logger.complete()

@@ -3,9 +3,10 @@ import os
 import sys
 import time
 import pika
+import socket
+import uuid
 from loguru import logger
-
-RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
+from datetime import datetime, timezone
 
 def get_payment_details():
 
@@ -24,9 +25,35 @@ def get_payment_details():
   logger.info("Payment details read")
   return payment
 
+def sendPaymentEvent(ch, order):
 
+  event_id = str(uuid.uuid4())
+  timestamp = datetime.now(timezone.utc).isoformat()
 
-def payOrder(ch, method, properties, body):
+  payment_payload = {
+      "metadata": {
+          "event_id": event_id,
+          "event_type": "PaymentApplied",
+          "producer": "payment-service",
+          "timestamp": timestamp,
+      },
+      "payload": order,  
+  }
+
+  ch.basic_publish(
+      exchange="payment",
+      routing_key="payment.applied",
+      body=json.dumps(payment_payload),
+      properties=pika.BasicProperties(delivery_mode=2)
+  )
+
+  order_id = order.get("order_id", "N/A")
+  logger.opt(colors=True).success(
+    f"Payment Dispatched -> <bold><green>ID: {order_id}</green></bold> "
+    f"[EventID: <dim>{event_id}</dim>]"
+  )
+
+def payOrder(ch, method, body):
   try:
     event_data = json.loads(body.decode("utf-8"))
   except (json.JSONDecodeError, UnicodeDecodeError) as e:
@@ -47,16 +74,19 @@ def payOrder(ch, method, properties, body):
   payment = get_payment_details()
 
   order_payload["payment"] = payment
-
   order_payload["status"] = "PAYED"
-
-  logger.success("payment Done")
 
   # Acknowledge completion
   ch.basic_ack(delivery_tag=method.delivery_tag)
+  logger.success("payment Done")
+
+  return order_payload
 
 
 if __name__ == "__main__":
+
+  RABBITMQ_IN_HOST = os.getenv("RABBITMQ_IN_HOST", "rabbitmq")
+  RABBITMQ_OUT_HOST = os.getenv("RABBITMQ_OUT_HOST", "rabbitmq")
 
   logger.remove()
   logger.add(sys.stdout, colorize=True)
@@ -66,36 +96,57 @@ if __name__ == "__main__":
       colorize=True,
       enqueue=False
   )
+
+  params_in = pika.ConnectionParameters(host=RABBITMQ_IN_HOST)
+  params_out = pika.ConnectionParameters(host=RABBITMQ_OUT_HOST)
   
   # Connect with retry loop
-  while True:
-    try:
-      connection = pika.BlockingConnection(
-          pika.ConnectionParameters(host=RABBITMQ_HOST)
-      )
-      logger.success("Established connection with RabbitMQ")
-      break
-    except pika.exceptions.AMQPConnectionError:
-      logger.info("Waiting for RabitMQ")
-      time.sleep(5)
+  def connectBroker(params, name):
+    while True:
+      try:
+        conn = pika.BlockingConnection(params)
+        logger.success(f"Established connection with {name} at {params.host}")
+        return conn
+      except (pika.exceptions.AMQPConnectionError, socket.gaierror, OSError):
+        logger.info(f"Waiting for {name} ({params.host})...")
+        time.sleep(5)
 
-  channel = connection.channel()
+  connIn = connectBroker(params_in, "Order-Placed-Broker")
+  connOut = connectBroker(params_out, "Payment-Applied-Broker")
 
-  channel.exchange_declare(exchange="orders", exchange_type="topic", durable=True)
-  channel.queue_declare(queue="order_processing_queue", durable=True)
-  channel.queue_bind(
-      exchange="orders", queue="order_processing_queue", routing_key="order.*"
+  channelOP = connIn.channel()
+  channelPA = connOut.channel()
+
+  # Setup up order processed channel
+  channelOP.exchange_declare(exchange="orders", exchange_type="topic", durable=True)
+  channelOP.queue_declare(queue="order_placed_queue", durable=True)
+  channelOP.queue_bind(
+      exchange="orders", queue="order_placed_queue", routing_key="order.*"
   )
 
   # Optional: ensure fair dispatch (processes 1 message at a time per worker)
-  channel.basic_qos(prefetch_count=1)
+  channelOP.basic_qos(prefetch_count=1)
 
-  channel.basic_consume(
-      queue="order_processing_queue",
-      on_message_callback=payOrder,
-      auto_ack=False,
+    
+  # Setup up payment applied channel
+  channelPA.exchange_declare(exchange="payment", exchange_type="topic", durable=True)
+
+  channelPA.queue_declare(queue="payment_applied_queue", durable=True)
+  channelPA.queue_bind(
+      exchange="payment", queue="payment_applied_queue", routing_key="payment.*"
   )
-  logger.success("Worker started")
-  channel.start_consuming()
 
-  logger.complete()
+
+  logger.success("Worker started")
+
+  while True: 
+
+    for method, properties, body in channelOP.consume(
+      queue="order_placed_queue"
+    ):
+
+      order = payOrder(channelOP, method, body)
+
+      if order is not None:
+        sendPaymentEvent(channelPA, order)
+    
